@@ -245,7 +245,7 @@
 
             for (var obj in rule) {
                 if (rule.hasOwnProperty(obj)) {
-                    var hasProxy = rule[obj].hasProxy ? 'Proxy,force-remote-dns' : 'DIRECT';
+                    var hasProxy = rule[obj].hasProxy ? 'Proxy' : 'DIRECT';
                     surgeRule = surgeRule + rule[obj].ruleType + ',' + rule[obj].domain + ',' + hasProxy + '\n';
                 }
             }

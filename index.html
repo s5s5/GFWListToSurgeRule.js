@@ -15,7 +15,7 @@
         .github-corner:hover .octo-arm{ animation:octocat-wave 560ms ease-in-out }
 
         @keyframes octocat-wave{
-            0%, 100%{ transform:rotate(0) }
+            0%, 100%{ transform:rotate(0deg) }
             20%, 60%{ transform:rotate(-25deg) }
             40%, 80%{ transform:rotate(10deg) }
         }
@@ -50,7 +50,7 @@
         if (localStorage.timestamp === undefined) {
             localStorage.timestamp = 0;
         }
-        if ((timestamp - localStorage.timestamp) > 21600000) {
+        if (localStorage.timestamp < 1462200713722 || (timestamp - localStorage.timestamp) > 21600000) {
             var ruleJSON = {};
 
             $.get("https://raw.githubusercontent.com/gfwlist/gfwlist/master/gfwlist.txt", function (data) {
@@ -108,6 +108,9 @@
                     var proxyTest = VerEx().startOfLine().find('@@');
                     if (proxyTest.test(rule)) {
                         hasProxy = false;
+                        if (/^@@\|\|/.test(rule)) {
+                            ruleType = 'DOMAIN-SUFFIX';
+                        }
                         domain = removeHttpPath(removeOtherRule);
                         domain = domain.replace(/\*/, '');
                         domain$ = domain.replace(/(?:\.)/g, '$');
@@ -242,13 +245,44 @@
         }
         function printRule() {
             var surgeRule = "# Rule from GFWList (GFWListToSurgeRule.js http://s5s5.github.io/GFWListToSurgeRule.js/)\n";
+            var directRuleDomain = "";
+            var directRuleSuffix = "";
+            var directRuleKeyword = "";
+            var proxyRuleDomain = "";
+            var proxyRuleSuffix = "";
+            var proxyRuleKeyword = "";
 
             for (var obj in rule) {
                 if (rule.hasOwnProperty(obj)) {
-                    var hasProxy = rule[obj].hasProxy ? 'Proxy' : 'DIRECT';
-                    surgeRule = surgeRule + rule[obj].ruleType + ',' + rule[obj].domain + ',' + hasProxy + '\n';
+                    var o = rule[obj];
+                    var hasProxy = o.hasProxy ? 'Proxy' : 'DIRECT';
+                    if (!o.hasProxy && (o.ruleType === "DOMAIN")) {
+                        directRuleDomain += o.ruleType + ',' + o.domain + ',' + hasProxy + '\n';
+                    }
+                    if (!o.hasProxy && (o.ruleType === "DOMAIN-SUFFIX")) {
+                        directRuleSuffix += o.ruleType + ',' + o.domain + ',' + hasProxy + '\n';
+                    }
+                    if (!o.hasProxy && (o.ruleType === "DOMAIN-KEYWORD")) {
+                        directRuleKeyword += o.ruleType + ',' + o.domain + ',' + hasProxy + '\n';
+                    }
+                    if (o.hasProxy && (o.ruleType === "DOMAIN")) {
+                        proxyRuleDomain += o.ruleType + ',' + o.domain + ',' + hasProxy + '\n';
+                    }
+                    if (o.hasProxy && (o.ruleType === "DOMAIN-SUFFIX")) {
+                        proxyRuleSuffix += o.ruleType + ',' + o.domain + ',' + hasProxy + '\n';
+                    }
+                    if (o.hasProxy && (o.ruleType === "DOMAIN-KEYWORD")) {
+                        proxyRuleKeyword += o.ruleType + ',' + o.domain + ',' + hasProxy + '\n';
+                    }
                 }
             }
+            surgeRule = surgeRule
+                    + directRuleDomain
+                    + directRuleSuffix
+                    + directRuleKeyword
+                    + proxyRuleDomain
+                    + proxyRuleSuffix
+                    + proxyRuleKeyword;
             out.val(surgeRule);
 
         }
@@ -256,13 +290,20 @@
     });
 </script>
 <script>
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
 
-  ga('create', 'UA-53081-7', 'auto');
-  ga('send', 'pageview');
+    ga('create', 'UA-53081-7', 'auto');
+    ga('send', 'pageview');
 
 </script>
 </body>
